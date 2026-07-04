@@ -1,5 +1,6 @@
 import 'package:workmanager/workmanager.dart';
 import '../database/app_database.dart';
+import '../../core/constants/app_constants.dart';
 import 'notification_service.dart';
 
 const String periodicCheckTaskName = 'finmate_periodic_check';

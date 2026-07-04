@@ -69,6 +69,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             amount: startingBalance,
             type: TransactionType.income,
             category: 'Others',
+            date: DateTime.now(),
             notes: 'Added during onboarding',
           );
     }
