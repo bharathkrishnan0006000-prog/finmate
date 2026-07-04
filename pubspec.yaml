@@ -43,7 +43,7 @@ dependencies:
   # Local notifications & background work
   flutter_local_notifications: ^17.2.2
   timezone: ^0.9.4
-  workmanager: ^0.5.2
+  workmanager: ^0.6.0
 
   # Preferences & security
   shared_preferences: ^2.2.3
