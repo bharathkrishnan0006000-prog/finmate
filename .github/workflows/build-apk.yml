@@ -45,22 +45,26 @@ jobs:
 
       - name: Patch Android config (SDK versions, Kotlin, permissions)
         run: |
-          GRADLE_FILE=android/app/build.gradle
-          if [ -f "$GRADLE_FILE" ]; then
-            sed -i 's/flutter.minSdkVersion/23/' "$GRADLE_FILE" || true
-            sed -i 's/compileSdk = flutter.compileSdkVersion/compileSdk = 35/' "$GRADLE_FILE" || true
-            sed -i 's/compileSdkVersion flutter.compileSdkVersion/compileSdkVersion 35/' "$GRADLE_FILE" || true
-          fi
+          # Support both Groovy DSL (build.gradle) and Kotlin DSL (build.gradle.kts)
+          for GRADLE_FILE in android/app/build.gradle android/app/build.gradle.kts; do
+            if [ -f "$GRADLE_FILE" ]; then
+              sed -i 's/flutter\.minSdkVersion/23/g' "$GRADLE_FILE" || true
+              sed -i 's/compileSdk = flutter\.compileSdkVersion/compileSdk = 35/g' "$GRADLE_FILE" || true
+              sed -i 's/compileSdkVersion flutter\.compileSdkVersion/compileSdkVersion 35/g' "$GRADLE_FILE" || true
+            fi
+          done
 
           # Bump the Kotlin Gradle plugin version regardless of what the
           # Flutter template shipped with — this is the exact fix for the
           # "Module was compiled with an incompatible version of Kotlin"
           # error, which happens when the project's Kotlin plugin is
           # older than what plugins like shared_preferences require.
-          SETTINGS_FILE=android/settings.gradle
-          if [ -f "$SETTINGS_FILE" ]; then
-            sed -i -E 's/(id "org\.jetbrains\.kotlin\.android" version ")[^"]+(")/\12.1.0\2/' "$SETTINGS_FILE" || true
-          fi
+          for SETTINGS_FILE in android/settings.gradle android/settings.gradle.kts; do
+            if [ -f "$SETTINGS_FILE" ]; then
+              sed -i -E 's/(id\("org\.jetbrains\.kotlin\.android"\) version ")[^"]+(")/\12.1.0\2/' "$SETTINGS_FILE" || true
+              sed -i -E 's/(id "org\.jetbrains\.kotlin\.android" version ")[^"]+(")/\12.1.0\2/' "$SETTINGS_FILE" || true
+            fi
+          done
 
           MANIFEST=android/app/src/main/AndroidManifest.xml
           if [ -f "$MANIFEST" ] && ! grep -q "POST_NOTIFICATIONS" "$MANIFEST"; then
@@ -74,7 +78,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add android .metadata analysis_options.yaml .gitignore 2>/dev/null || true
           git diff --cached --quiet || git commit -m "chore: add generated Android platform files [skip ci]"
-          git push
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
 
       - name: Install dependencies
         run: flutter pub get
