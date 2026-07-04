@@ -99,8 +99,19 @@ jobs:
       - name: Generate Drift database code
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Re-patch Kotlin version after Flutter upgrade
+        # flutter build rewrites settings.gradle.kts via "Upgrading build.gradle.kts",
+        # which can downgrade the Kotlin version. Re-apply the patch right before building.
+        run: |
+          for SETTINGS_FILE in android/settings.gradle android/settings.gradle.kts; do
+            if [ -f "$SETTINGS_FILE" ]; then
+              sed -i -E 's/(id\("org\.jetbrains\.kotlin\.android"\) version ")[^"]+(")/\12.2.20\2/' "$SETTINGS_FILE" || true
+              sed -i -E 's/(id "org\.jetbrains\.kotlin\.android" version ")[^"]+(")/\12.2.20\2/' "$SETTINGS_FILE" || true
+            fi
+          done
+
       - name: Build release APK
-        run: flutter build apk --release
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
